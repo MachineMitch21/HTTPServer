@@ -45,14 +45,7 @@ void RequestHandler(SOCKET client)
     iResult = recv(client, recvbuf, 512, 0);
     if (iResult > 0) 
     {
-        printf("Bytes received: %d\n", iResult);
-
         RequestParser::HTTPRequest http_request = RequestParser::ParseRequest(std::string(recvbuf));
-
-        for (auto it = http_request.begin(); it != http_request.end(); it++)
-        {
-            printf("%s : %s\n", it->first.c_str(), it->second.c_str());
-        }
 
         std::string responseHeader = std::string("HTTP/1.1 200 OK\n");
 
@@ -68,7 +61,7 @@ void RequestHandler(SOCKET client)
 
         std::ostringstream s;
         s << "Content-Type: text/html\n";
-        s << "Content-Length: " << httpDoc.length() << "\n\r\n\r";
+        s << "Content-Length: " << httpDoc.length() << "\n\n";
 
         responseHeader += s.str();
 
@@ -79,7 +72,10 @@ void RequestHandler(SOCKET client)
             closesocket(client);
             WSACleanup();
         }
-        printf("Bytes sent: %d\n", iSendResult);
+        else 
+        {
+            printf("Request handled successfully, closing client connection and exiting RequestHandler thread\n");
+        }
     }
     else if (iResult == 0)
         closesocket(client);
