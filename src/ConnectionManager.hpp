@@ -1,6 +1,6 @@
 
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#ifndef CONNECTIONMANAGER_HPP
+#define CONNECTIONMANAGER_HPP
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -27,4 +27,4 @@ private:
     std::atomic<bool>           _running = true;
 };
 
-#endif // SERVER_HPP
+#endif // CONNECTIONMANAGER_HPP
