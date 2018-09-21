@@ -39,18 +39,5 @@ int main(int argc, char** argv)
 
     connectionManager.Stop();
 
-    // shutdown the connection since we're done
-    int iResult = shutdown(ClientSocket, SD_SEND);
-    if (iResult == SOCKET_ERROR) {
-        printf("shutdown failed with error: %d\n", WSAGetLastError());
-        closesocket(ClientSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    // cleanup
-    closesocket(ClientSocket);
-    WSACleanup();
-
     return 0;
 }
