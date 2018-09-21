@@ -1,6 +1,10 @@
 
 #include "ConnectionManager.hpp"
 
+#include <sstream>
+
+#include "RequestParser.hpp"
+
 void ConnectionThread(std::queue<std::thread>& connections, std::condition_variable& condVar, std::mutex& mu, std::atomic<bool>& running)
 {
     while (running)
@@ -43,8 +47,33 @@ void RequestHandler(SOCKET client)
     {
         printf("Bytes received: %d\n", iResult);
 
-    // Echo the buffer back to the sender
-        iSendResult = send( client, recvbuf, iResult, 0 );
+        RequestParser::HTTPRequest http_request = RequestParser::ParseRequest(std::string(recvbuf));
+
+        for (auto it = http_request.begin(); it != http_request.end(); it++)
+        {
+            printf("%s : %s\n", it->first.c_str(), it->second.c_str());
+        }
+
+        std::string responseHeader = std::string("HTTP/1.1 200 OK\n");
+
+        std::string httpDoc =   std::string("<!DOCTYPE html>\n")            + 
+                                std::string("<html>\n")                     +
+                                std::string("<head> \n")                    +
+                                std::string("   <meta charset='utf-8'>\n")  +
+                                std::string("</head>\n")                    +
+                                std::string("<body>\n")                     +
+                                std::string("   <h1>Hello, World!</h1>\n")  +
+                                std::string("</body>\n")                    +
+                                std::string("</html>\n");
+
+        std::ostringstream s;
+        s << "Content-Type: text/html\n";
+        s << "Content-Length: " << httpDoc.length() << "\n\r\n\r";
+
+        responseHeader += s.str();
+
+        // Echo the buffer back to the sender
+        iSendResult = send( client, std::string(responseHeader + httpDoc).c_str(), iResult, 0 );
         if (iSendResult == SOCKET_ERROR) {
             printf("send failed with error: %d\n", WSAGetLastError());
             closesocket(client);
