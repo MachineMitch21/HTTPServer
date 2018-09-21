@@ -23,25 +23,24 @@ int main(int argc, char** argv)
 
     ConnectionManager connectionManager;
 
-    char recvbuf[DEFAULT_BUFLEN];
-
-    int iResult;
-    int iSendResult;
-
-
-    ClientSocket = server.Accept();
-
-    if (ClientSocket != INVALID_SOCKET)
+    while (true)
     {
-        connectionManager.PushConnection(ClientSocket);
+        ClientSocket = server.Accept();
+
+        if (ClientSocket != INVALID_SOCKET)
+        {
+            connectionManager.PushConnection(ClientSocket);
+        }
+        else 
+        {
+            ExitProcess(1);
+        }
     }
-    else 
-    {
-        ExitProcess(1);
-    }
+
+    connectionManager.Stop();
 
     // shutdown the connection since we're done
-    iResult = shutdown(ClientSocket, SD_SEND);
+    int iResult = shutdown(ClientSocket, SD_SEND);
     if (iResult == SOCKET_ERROR) {
         printf("shutdown failed with error: %d\n", WSAGetLastError());
         closesocket(ClientSocket);

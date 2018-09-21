@@ -14,6 +14,11 @@ ServerSocket::ServerSocket(std::string port)
 
 ServerSocket::~ServerSocket()
 {
+    if (_listenSocket != INVALID_SOCKET)
+    {
+        Close();
+    }
+
     WSACleanup();
 }
 
