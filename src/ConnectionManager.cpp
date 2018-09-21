@@ -65,7 +65,6 @@ void RequestHandler(SOCKET client)
 
         responseHeader += s.str();
 
-        // Echo the buffer back to the sender
         iSendResult = send( client, std::string(responseHeader + httpDoc).c_str(), iResult, 0 );
         if (iSendResult == SOCKET_ERROR) {
             printf("send failed with error: %d\n", WSAGetLastError());
