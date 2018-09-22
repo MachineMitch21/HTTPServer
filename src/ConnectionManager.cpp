@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "RequestParser.hpp"
+#include "FileUtils.hpp"
 
 void ConnectionThread(std::queue<std::thread>& connections, std::condition_variable& condVar, std::mutex& mu, std::atomic<bool>& running)
 {
@@ -59,13 +60,37 @@ void RequestHandler(SOCKET client)
                                 std::string("</body>\n")                    +
                                 std::string("</html>\n");
 
+        if (http_request.find("GET") != http_request.end())
+        {
+            if (http_request["GET"] != "/" && http_request["GET"] != "/index.html")
+            {
+                std::string fileName = http_request["GET"];
+                size_t slashLoc = fileName.find_first_of('/');
+                
+                if (slashLoc != std::string::npos)
+                {
+                    fileName.erase(0, slashLoc + 1);
+                }
+
+                httpDoc.clear();
+                httpDoc = FileUtils::ReadFile(fileName);
+            }
+            else 
+            {
+                httpDoc.clear();
+                httpDoc = FileUtils::ReadFile("index.html");
+            }
+        }
+
         std::ostringstream s;
         s << "Content-Type: text/html\n";
         s << "Content-Length: " << httpDoc.length() << "\n\n";
 
         responseHeader += s.str();
 
-        iSendResult = send( client, std::string(responseHeader + httpDoc).c_str(), iResult, 0 );
+        std::string sendStr = responseHeader + httpDoc;
+
+        iSendResult = send( client, sendStr.c_str(), iResult, 0 );
         if (iSendResult == SOCKET_ERROR) {
             printf("send failed with error: %d\n", WSAGetLastError());
             closesocket(client);

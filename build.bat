@@ -3,7 +3,7 @@
 setlocal EnableDelayedExpansion
 set files=
 
-del /q build
+mkdir build
 
 pushd src
 for /R "./" %%f in (*.c *.cpp *.cc *.cxx) DO (

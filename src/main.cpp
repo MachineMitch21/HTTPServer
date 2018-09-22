@@ -12,7 +12,7 @@
 #include "ConnectionManager.hpp"
 
 #define DEFAULT_BUFLEN  512
-#define DEFAULT_PORT    "9000"
+#define DEFAULT_PORT    "80"
 
 int main(int argc, char** argv)
 {
