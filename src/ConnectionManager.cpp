@@ -74,31 +74,39 @@ void RequestHandler(SOCKET client)
 
                 httpDoc.clear();
                 httpDoc = FileUtils::ReadFile(fileName);
+
+                if (fileName.find(".css") != std::string::npos)
+                {
+                    responseHeader += "Content-Type: text/css\n";
+                }
+                else if (fileName.find(".js") != std::string::npos)
+                {
+                    responseHeader += "Content-Type: text/javascript\n";
+                }
             }
             else 
             {
                 httpDoc.clear();
                 httpDoc = FileUtils::ReadFile("index.html");
+
+                responseHeader += "Content-Type: text/html\n";
             }
         }
 
+        printf("HTTPResponse body length: %d\n", httpDoc.length());
+
         std::ostringstream s;
-        s << "Content-Type: text/html\n";
         s << "Content-Length: " << httpDoc.length() << "\n\n";
 
         responseHeader += s.str();
 
         std::string sendStr = responseHeader + httpDoc;
 
-        iSendResult = send( client, sendStr.c_str(), iResult, 0 );
+        iSendResult = send( client, sendStr.c_str(), sendStr.length(), 0 );
         if (iSendResult == SOCKET_ERROR) {
             printf("send failed with error: %d\n", WSAGetLastError());
             closesocket(client);
             WSACleanup();
-        }
-        else 
-        {
-            printf("Request handled successfully, closing client connection and exiting RequestHandler thread\n");
         }
     }
     else if (iResult == 0)
