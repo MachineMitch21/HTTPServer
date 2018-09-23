@@ -13,7 +13,7 @@ std::string FileUtils::ReadFile(const std::string& fileName)
 
 	if (fp != nullptr)
 	{
-		fseek(fp, 0, SEEK_SET);
+		fseek(fp, 0, SEEK_END);
 		size_t fileSize = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
 
