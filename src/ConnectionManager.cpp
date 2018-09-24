@@ -6,6 +6,27 @@
 #include "RequestParser.hpp"
 #include "FileUtils.hpp"
 
+// TODO: Do the same with this as the one below
+struct HTTPResponse
+{
+    std::string Header;
+    std::string Body;
+};
+
+// TODO: Actually put these into a file and implement them
+class HTTPClient 
+{
+public:
+    HTTPClient(SOCKET WinSockClient);
+
+    int Send(HTTPResponse response);
+    int Recieve();
+    void Close();
+
+private:
+
+};
+
 void ConnectionThread(std::queue<std::thread>& connections, std::condition_variable& condVar, std::mutex& mu, std::atomic<bool>& running)
 {
     while (running)
