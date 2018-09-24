@@ -1,5 +1,5 @@
 
 window.onload = function(e)
 {
-    alert("Hey, there.  This is Javascript.");
+    alert("Fuck yeah!");
 }
