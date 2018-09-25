@@ -5,11 +5,13 @@
 #include <map>
 #include <string>
 
+#include "HttpRequest.hpp"
+
 namespace RequestParser 
 {
-    typedef std::map<std::string, std::string> HTTPRequest;
+    typedef std::map<std::string, std::string> HTTPRequestMap;
     
-    HTTPRequest ParseRequest(std::string request);
+    HTTPRequestMap ParseRequest(HttpRequest httpRequest);
 };
 
 #endif // REQUESTPARSER_HPP

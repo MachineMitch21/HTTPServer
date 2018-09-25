@@ -6,7 +6,13 @@
 
 namespace FileUtils 
 {
-    std::string ReadFile(const std::string& fileName);
+    struct LoadedFile
+    {
+        std::string Data;
+        size_t      Length;
+    };
+
+    LoadedFile ReadFile(const std::string& fileName);
 };
 
 #endif // FILEUTILS_HPP

@@ -5,27 +5,8 @@
 
 #include "RequestParser.hpp"
 #include "FileUtils.hpp"
-
-// TODO: Do the same with this as the one below
-struct HTTPResponse
-{
-    std::string Header;
-    std::string Body;
-};
-
-// TODO: Actually put these into a file and implement them
-class HTTPClient 
-{
-public:
-    HTTPClient(SOCKET WinSockClient);
-
-    int Send(HTTPResponse response);
-    int Recieve();
-    void Close();
-
-private:
-
-};
+#include "HttpClient.hpp"
+#include "HttpRequest.hpp"
 
 void ConnectionThread(std::queue<std::thread>& connections, std::condition_variable& condVar, std::mutex& mu, std::atomic<bool>& running)
 {
@@ -57,35 +38,30 @@ void ConnectionThread(std::queue<std::thread>& connections, std::condition_varia
     }
 }
 
-void RequestHandler(SOCKET client)
+void RequestHandler(HttpClient client)
 {
-    char recvbuf[512];
-
-    int iResult;
-    int iSendResult;
-
-    iResult = recv(client, recvbuf, 512, 0);
-    if (iResult > 0) 
+    HttpRequest request = client.Recieve();
+    if (request.Length > 0) 
     {
-        RequestParser::HTTPRequest http_request = RequestParser::ParseRequest(std::string(recvbuf));
+        RequestParser::HTTPRequestMap httpRequestMap = RequestParser::ParseRequest(request);
+        HttpResponse response = { };
+        response.Header = std::string("HTTP/1.1 200 OK\n");
 
-        std::string responseHeader = std::string("HTTP/1.1 200 OK\n");
+        response.Body = std::string("<!DOCTYPE html>\n")            + 
+                        std::string("<html>\n")                     +
+                        std::string("<head> \n")                    +
+                        std::string("   <meta charset='utf-8'>\n")  +
+                        std::string("</head>\n")                    +
+                        std::string("<body>\n")                     +
+                        std::string("   <h1>Hello, World!</h1>\n")  +
+                        std::string("</body>\n")                    +
+                        std::string("</html>\n");
 
-        std::string httpDoc =   std::string("<!DOCTYPE html>\n")            + 
-                                std::string("<html>\n")                     +
-                                std::string("<head> \n")                    +
-                                std::string("   <meta charset='utf-8'>\n")  +
-                                std::string("</head>\n")                    +
-                                std::string("<body>\n")                     +
-                                std::string("   <h1>Hello, World!</h1>\n")  +
-                                std::string("</body>\n")                    +
-                                std::string("</html>\n");
-
-        if (http_request.find("GET") != http_request.end())
+        if (httpRequestMap.find("GET") != httpRequestMap.end())
         {
-            if (http_request["GET"] != "/" && http_request["GET"] != "/index.html")
+            if (httpRequestMap["GET"] != "/" && httpRequestMap["GET"] != "/index.html")
             {
-                std::string fileName = http_request["GET"];
+                std::string fileName = httpRequestMap["GET"];
                 size_t slashLoc = fileName.find_first_of('/');
                 
                 if (slashLoc != std::string::npos)
@@ -93,53 +69,51 @@ void RequestHandler(SOCKET client)
                     fileName.erase(0, slashLoc + 1);
                 }
 
-                httpDoc.clear();
-                httpDoc = FileUtils::ReadFile(fileName);
+                response.Body.clear();
+                FileUtils::LoadedFile loadedFile = FileUtils::ReadFile(fileName);
+                response.Body = loadedFile.Data;
+                response.BodyLength = loadedFile.Length;
 
                 if (fileName.find(".css") != std::string::npos)
                 {
-                    responseHeader += "Content-Type: text/css\n";
+                    response.Header += "Content-Type: text/css\n";
                 }
                 else if (fileName.find(".js") != std::string::npos)
                 {
-                    responseHeader += "Content-Type: text/javascript\n";
+                    response.Header += "Content-Type: text/javascript\n";
                 }
             }
             else 
             {
-                httpDoc.clear();
-                httpDoc = FileUtils::ReadFile("index.html");
+                response.Body.clear();
+                FileUtils::LoadedFile loadedFile = FileUtils::ReadFile("index.html");
+                response.Body = loadedFile.Data;
+                response.BodyLength = loadedFile.Length;
 
-                responseHeader += "Content-Type: text/html\n";
+                response.Header += "Content-Type: text/html\n";
             }
         }
 
-        printf("HTTPResponse body length: %d\n", httpDoc.length());
+        printf("HTTPResponse body length: %d\n", response.Body.length());
 
         std::ostringstream s;
-        s << "Content-Length: " << httpDoc.length() << "\n\n";
+        s << "Content-Length: " << response.Body.length() << "\n\n";
 
-        responseHeader += s.str();
+        response.Header += s.str();
 
-        std::string sendStr = responseHeader + httpDoc;
+        int sendResult = client.Send(response);
 
-        iSendResult = send( client, sendStr.c_str(), sendStr.length(), 0 );
-        if (iSendResult == SOCKET_ERROR) {
-            printf("send failed with error: %d\n", WSAGetLastError());
-            closesocket(client);
-            WSACleanup();
+        if (sendResult == SOCKET_ERROR)
+        {
+            printf("client.Send failed: ERROR #%d\n", WSAGetLastError());
         }
     }
-    else if (iResult == 0)
-        closesocket(client);
-    else  
+    else if (request.Length != 0) 
     {
         printf("recv failed with error: %d\n", WSAGetLastError());
-        closesocket(client);
-        WSACleanup();
     }
 
-    closesocket(client);  
+    client.Close();
 }
 
 ConnectionManager::ConnectionManager()
@@ -156,7 +130,7 @@ ConnectionManager::~ConnectionManager()
 void ConnectionManager::PushConnection(SOCKET client)
 {
     std::unique_lock<std::mutex> lock(_connectionMutex);
-    _connections.push(std::move(std::thread(RequestHandler, client)));
+    _connections.push(std::move(std::thread(RequestHandler, HttpClient(client))));
     lock.unlock();
     _conditionVar.notify_one();
 }

@@ -1,29 +1,29 @@
 
 #include "RequestParser.hpp"
 
-RequestParser::HTTPRequest RequestParser::ParseRequest(std::string request)
+RequestParser::HTTPRequestMap RequestParser::ParseRequest(HttpRequest httpRequest)
 {
-    std::map<std::string, std::string> requestMap;
+    RequestParser::HTTPRequestMap requestMap;
 
     size_t endSubStrLoc = 0;
-    endSubStrLoc = request.find_first_of(' ');
+    endSubStrLoc = httpRequest.Data.find_first_of(' ');
 
-    std::string httpMethod = request.substr(0, endSubStrLoc);
-    request.erase(0, endSubStrLoc + 1);
+    std::string httpMethod = httpRequest.Data.substr(0, endSubStrLoc);
+    httpRequest.Data.erase(0, endSubStrLoc + 1);
 
-    endSubStrLoc = request.find_first_of(' ');
-    std::string httpMethodValue = request.substr(0, endSubStrLoc);
+    endSubStrLoc = httpRequest.Data.find_first_of(' ');
+    std::string httpMethodValue = httpRequest.Data.substr(0, endSubStrLoc);
 
-    request.erase(0, endSubStrLoc + 1);
+    httpRequest.Data.erase(0, endSubStrLoc + 1);
 
     requestMap.emplace(httpMethod, httpMethodValue);
 
-    endSubStrLoc = request.find_first_of('\n');
-    request.erase(0, endSubStrLoc + 1);
+    endSubStrLoc = httpRequest.Data.find_first_of('\n');
+    httpRequest.Data.erase(0, endSubStrLoc + 1);
 
     while (true)
     {
-        endSubStrLoc = request.find_first_of(':');
+        endSubStrLoc = httpRequest.Data.find_first_of(':');
 
         if (endSubStrLoc == std::string::npos)
         {
@@ -31,13 +31,13 @@ RequestParser::HTTPRequest RequestParser::ParseRequest(std::string request)
         }
         else 
         {
-            std::string httpKey = request.substr(0, endSubStrLoc);
-            request.erase(0, endSubStrLoc + 2);
+            std::string httpKey = httpRequest.Data.substr(0, endSubStrLoc);
+            httpRequest.Data.erase(0, endSubStrLoc + 2);
 
-            endSubStrLoc = request.find_first_of('\n');
-            std::string httpValue = request.substr(0, endSubStrLoc);
+            endSubStrLoc = httpRequest.Data.find_first_of('\n');
+            std::string httpValue = httpRequest.Data.substr(0, endSubStrLoc);
 
-            request.erase(0, endSubStrLoc + 1);
+            httpRequest.Data.erase(0, endSubStrLoc + 1);
             requestMap.emplace(httpKey, httpValue);
         }
     }
