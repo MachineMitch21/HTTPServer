@@ -2,13 +2,14 @@
 #include "ConnectionManager.hpp"
 
 #include <sstream>
+#include <chrono>
 
 #include "RequestParser.hpp"
 #include "FileUtils.hpp"
 #include "HttpClient.hpp"
 #include "HttpRequest.hpp"
 
-void ConnectionThread(std::queue<std::thread>& connections, std::condition_variable& condVar, std::mutex& mu, std::atomic<bool>& running)
+void ConnectionThread(std::queue<std::thread>& connections, std::map<std::thread::id, bool>& connectionSendFlags, std::mutex& mu, std::atomic<bool>& running)
 {
     while (running)
     {
@@ -16,12 +17,18 @@ void ConnectionThread(std::queue<std::thread>& connections, std::condition_varia
         {
             std::thread t;
             std::unique_lock<std::mutex> lock(mu);
-            condVar.wait(lock);
             t = std::move(connections.front());
             connections.pop();
             lock.unlock();
 
+            connectionSendFlags[t.get_id()] = true;
+            auto it = connectionSendFlags.find(t.get_id());
             t.join();
+            connectionSendFlags.erase(it);
+        }
+        else 
+        {
+            std::this_thread::yield();
         }
     }
 
@@ -29,22 +36,25 @@ void ConnectionThread(std::queue<std::thread>& connections, std::condition_varia
     {
         std::thread t;
         std::unique_lock<std::mutex> lock(mu);
-        condVar.wait(lock);
         t = std::move(connections.front());
         connections.pop();
         lock.unlock();
 
-        t.join();    
+        connectionSendFlags[t.get_id()] = true;
+        auto it = connectionSendFlags.find(t.get_id());
+        t.join();
+        connectionSendFlags.erase(it);   
     }
 }
 
-void RequestHandler(HttpClient client)
+void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& connectionFlags)
 {
     HttpRequest request = client.Recieve();
     if (request.Length > 0) 
     {
         RequestParser::HTTPRequestMap httpRequestMap = RequestParser::ParseRequest(request);
         HttpResponse response = { };
+        
         response.Header = std::string("HTTP/1.1 200 OK\n");
 
         response.Body = std::string("<!DOCTYPE html>\n")            + 
@@ -56,6 +66,8 @@ void RequestHandler(HttpClient client)
                         std::string("   <h1>Hello, World!</h1>\n")  +
                         std::string("</body>\n")                    +
                         std::string("</html>\n");
+
+        std::string debugStr = "";
 
         if (httpRequestMap.find("GET") != httpRequestMap.end())
         {
@@ -94,18 +106,21 @@ void RequestHandler(HttpClient client)
             }
         }
 
-        printf("HTTPResponse body length: %d\n", response.Body.length());
-
         std::ostringstream s;
         s << "Content-Length: " << response.Body.length() << "\n\n";
 
         response.Header += s.str();
 
-        int sendResult = client.Send(response);
+        while (!connectionFlags.at(std::this_thread::get_id())) 
+        { 
+            std::this_thread::yield();
+        };
 
-        if (sendResult == SOCKET_ERROR)
+        int iSendResult = client.Send(response);
+
+        if (iSendResult != SOCKET_ERROR)
         {
-            printf("client.Send failed: ERROR #%d\n", WSAGetLastError());
+            printf("Sent %d bytes to %s\n\n", iSendResult, httpRequestMap.at("Host").c_str());
         }
     }
     else if (request.Length != 0) 
@@ -118,7 +133,7 @@ void RequestHandler(HttpClient client)
 
 ConnectionManager::ConnectionManager()
 {
-    _connectionThread = std::thread(&ConnectionThread, std::ref(_connections), std::ref(_conditionVar), std::ref(_connectionMutex), std::ref(_running));
+    _connectionThread = std::thread(&ConnectionThread, std::ref(_connections), std::ref(_connectionSendFlags), std::ref(_connectionMutex), std::ref(_running));
 }
 
 ConnectionManager::~ConnectionManager()
@@ -129,10 +144,14 @@ ConnectionManager::~ConnectionManager()
 
 void ConnectionManager::PushConnection(SOCKET client)
 {
+    HttpClient httpClient(client);
+    bool shouldSend = false;
+
     std::unique_lock<std::mutex> lock(_connectionMutex);
-    _connections.push(std::move(std::thread(RequestHandler, HttpClient(client))));
+    std::thread requestThread = std::thread(RequestHandler, httpClient, std::ref(_connectionSendFlags));
+    _connectionSendFlags.emplace(requestThread.get_id(), shouldSend);
+    _connections.push(std::move(requestThread));
     lock.unlock();
-    _conditionVar.notify_one();
 }
 
 void ConnectionManager::Stop()

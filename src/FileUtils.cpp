@@ -11,7 +11,7 @@ namespace FileUtils
 		LoadedFile loadedFile = { };
 
 		FILE* fp;
-		fp = fopen(fileName.c_str(), "r");
+		fp = fopen(fileName.c_str(), "rb");
 
 		if (fp != nullptr)
 		{
@@ -19,14 +19,13 @@ namespace FileUtils
 			loadedFile.Length = ftell(fp);
 			fseek(fp, 0, SEEK_SET);
 
-			char buffer[512];
-			memset(buffer, 0, 512);
-			while (fread(buffer, sizeof(char), 512, fp) > 0)
-			{
-				printf("Reading %s from disk...\n", fileName.c_str());
-				loadedFile.Data += std::string(buffer);
-				memset(buffer, 0, 512);
-			}
+			printf("Reading %d bytes from %s\n\n", loadedFile.Length, fileName.c_str());
+
+			char* buffer = (char*) malloc(sizeof(char) * loadedFile.Length);
+			memset(buffer, 0, sizeof(char) * loadedFile.Length + 1);
+			fread(buffer, loadedFile.Length, 1, fp);
+			loadedFile.Data = std::string(buffer);
+			free(buffer);
 		}
 		else 
 		{

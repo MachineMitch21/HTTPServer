@@ -1,6 +1,12 @@
 
 #include "HttpClient.hpp"
 
+HttpClient::HttpClient()
+    :   _clientConnection(INVALID_SOCKET)
+{
+
+}
+
 HttpClient::HttpClient(SOCKET clientConnection)
     :   _clientConnection(clientConnection)
 {
@@ -20,10 +26,6 @@ int HttpClient::Send(HttpResponse response)
     if (iSendResult == SOCKET_ERROR)
     {
         printf("Failed to send HttpResponse: ERROR #%d\n", iSendResult);
-    }
-    else 
-    {
-        printf("Sent HttpResponse with %d bytes\n", iSendResult);
     }
 
     return iSendResult;

@@ -14,6 +14,7 @@
 class HttpClient 
 {
 public:
+    HttpClient();
     HttpClient(SOCKET clientConnection);
     ~HttpClient();
 
