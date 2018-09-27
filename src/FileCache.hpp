@@ -4,15 +4,26 @@
 
 #include <string>
 #include <map>
+#include <mutex>
 
-class FileCache 
+#include "LoadedFile.hpp"
+
+namespace FileUtils
 {
-public:
-    FileCache();
-    ~FileCache();
+    class FileCache 
+    {
+    public:
+        FileCache();
+        ~FileCache();
 
-private:
-    std::map<std::string, std::string> _cacheMap;
-};
+        static LoadedFile Get(const std::string& fileName, bool isImage = false);
+        static void Clear();
+
+    private:
+        static std::map<std::string, LoadedFile>    _cacheMap;
+        static std::mutex                           _cacheMutex;
+    };
+}
+
 
 #endif // FILECACHE_HPP

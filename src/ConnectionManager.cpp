@@ -5,9 +5,10 @@
 #include <chrono>
 
 #include "RequestParser.hpp"
-#include "FileUtils.hpp"
+#include "FileIO.hpp"
 #include "HttpClient.hpp"
 #include "HttpRequest.hpp"
+#include "LoadedFile.hpp"
 
 void ConnectionThread(std::queue<std::thread>& connections, std::map<std::thread::id, bool>& connectionSendFlags, std::mutex& mu, std::atomic<bool>& running)
 {
@@ -79,6 +80,9 @@ void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& co
 
         bool shouldWaitToSend = true;
 
+        FileUtils::LoadedFile loadedFile = { };
+        loadedFile.WasLoaded = false;
+
         if (httpRequestMap.find("GET") != httpRequestMap.end())
         {
             std::string fileName = httpRequestMap["GET"];
@@ -90,16 +94,15 @@ void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& co
             }
 
             response.Body.clear();
-            FileUtils::LoadedFile loadedFile;
 
             if (IsImageRequest(fileName))
             {
-                loadedFile = FileUtils::ReadFile(fileName, true);
+                loadedFile = FileUtils::FileCache::Get(fileName, true);
                 shouldWaitToSend = false;
             }
             else 
             {
-                loadedFile = FileUtils::ReadFile(fileName);
+                loadedFile = FileUtils::FileCache::Get(fileName);
             }
 
             response.Body = loadedFile.Data;
@@ -116,6 +119,7 @@ void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& co
             }
             else if (fileName.find(".html") != std::string::npos)
             {
+                shouldWaitToSend = false;
                 response.Header += "Content-Type: text/html\n";
             }
             else if (fileName.find(".jpg") || fileName.find(".jpeg"))
@@ -128,7 +132,7 @@ void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& co
             {
                 response.Header.clear();
                 response.Header = "HTTP/1.1 404 NOTFOUND\n";
-                loadedFile = FileUtils::ReadFile("404NotFound.html");
+                loadedFile = FileUtils::FileCache::Get("404NotFound.html");
                 response.Body = loadedFile.Data;
                 response.BodyLength = loadedFile.Length;
             }
@@ -150,7 +154,14 @@ void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& co
 
         if (iSendResult != SOCKET_ERROR)
         {
-            printf("Sent %d bytes to %s\n\n", iSendResult, httpRequestMap.at("Host").c_str());
+            if (loadedFile.WasLoaded == false)
+            {
+                printf("Sent %d bytes to %s\n\n", iSendResult, httpRequestMap.at("Host").c_str());
+            }
+            else 
+            {
+                printf("Sent %s to %s\n\n", loadedFile.Name.c_str(), httpRequestMap.at("Host").c_str());
+            }
         }
         else 
         {

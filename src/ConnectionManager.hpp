@@ -11,6 +11,8 @@
 #include <mutex>
 #include <atomic>
 
+#include "FileCache.hpp"
+
 class ConnectionManager 
 {
 public:
