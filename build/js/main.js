@@ -1,4 +1,14 @@
 
-$(document).ready(function () {
-    alert("Loaded jQuery in the correct order!");
+"use strict";
+
+$(document).ready(function() {
+
+    $(function() {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+
+    $(".infoBtn").bind("click", function(event) {
+        
+    });
+
 });

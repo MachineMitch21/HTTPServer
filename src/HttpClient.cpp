@@ -25,7 +25,7 @@ int HttpClient::Send(HttpResponse response)
 
     if (iSendResult == SOCKET_ERROR)
     {
-        printf("Failed to send HttpResponse: ERROR #%d\n", iSendResult);
+        iSendResult = WSAGetLastError();
     }
 
     return iSendResult;

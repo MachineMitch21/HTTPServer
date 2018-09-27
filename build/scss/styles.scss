@@ -1,0 +1,39 @@
+
+.navbar, .navbar-light, .bg-light {
+    position: fixed;
+    z-index: 1000;
+    width: 100%;
+}
+
+#siteFooter {
+    width: 100% !important;
+}
+
+.img-fluid {
+    max-height: auto !important;
+}
+
+.img-fluid-dev {
+    width: 100%;
+    height: auto;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+$theme-colors: (
+    "primary":  #47B295,
+    "secondary":  #A6FFE7,
+    "success":      #28a745,
+    "info":         #8DFFE0,
+    "warning":    #fbff00,
+    "danger":   #fc0400,
+    "light":    #FFD9CE,
+    "dark":     #B2B1B0              
+);
+    
+#contact-info-jumbotron {
+    background: map_get($theme-colors, 'light'); 
+}
+@import "node_modules/bootstrap/scss/bootstrap";

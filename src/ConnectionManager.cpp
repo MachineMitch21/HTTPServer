@@ -47,6 +47,14 @@ void ConnectionThread(std::queue<std::thread>& connections, std::map<std::thread
     }
 }
 
+bool IsImageRequest(const std::string& fileName)
+{
+    return (    fileName.find(".jpg")   != std::string::npos    || 
+                fileName.find(".jpeg")  != std::string::npos    ||  
+                fileName.find(".png")   != std::string::npos    || 
+                fileName.find(".bmp")   != std::string::npos    );
+}
+
 void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& connectionFlags)
 {
     HttpRequest request = client.Recieve();
@@ -69,40 +77,60 @@ void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& co
 
         std::string debugStr = "";
 
+        bool shouldWaitToSend = true;
+
         if (httpRequestMap.find("GET") != httpRequestMap.end())
         {
-            if (httpRequestMap["GET"] != "/" && httpRequestMap["GET"] != "/index.html")
+            std::string fileName = httpRequestMap["GET"];
+            fileName.insert(fileName.begin(), '.');
+
+            if (fileName == "./")
             {
-                std::string fileName = httpRequestMap["GET"];
-                size_t slashLoc = fileName.find_first_of('/');
-                
-                if (slashLoc != std::string::npos)
-                {
-                    fileName.erase(0, slashLoc + 1);
-                }
+                fileName += "index.html";
+            }
 
-                response.Body.clear();
-                FileUtils::LoadedFile loadedFile = FileUtils::ReadFile(fileName);
-                response.Body = loadedFile.Data;
-                response.BodyLength = loadedFile.Length;
+            response.Body.clear();
+            FileUtils::LoadedFile loadedFile;
 
-                if (fileName.find(".css") != std::string::npos)
-                {
-                    response.Header += "Content-Type: text/css\n";
-                }
-                else if (fileName.find(".js") != std::string::npos)
-                {
-                    response.Header += "Content-Type: text/javascript\n";
-                }
+            if (IsImageRequest(fileName))
+            {
+                loadedFile = FileUtils::ReadFile(fileName, true);
+                shouldWaitToSend = false;
             }
             else 
             {
-                response.Body.clear();
-                FileUtils::LoadedFile loadedFile = FileUtils::ReadFile("index.html");
+                loadedFile = FileUtils::ReadFile(fileName);
+            }
+
+            response.Body = loadedFile.Data;
+            response.BodyLength = loadedFile.Length;
+
+            if (fileName.find(".css") != std::string::npos)
+            {
+                shouldWaitToSend = false;
+                response.Header += "Content-Type: text/css\n";
+            }
+            else if (fileName.find(".js") != std::string::npos)
+            {
+                response.Header += "Content-Type: text/javascript\n";
+            }
+            else if (fileName.find(".html") != std::string::npos)
+            {
+                response.Header += "Content-Type: text/html\n";
+            }
+            else if (fileName.find(".jpg") || fileName.find(".jpeg"))
+            {
+                response.Header += "Content-Type: image/jpeg\n";
+                response.Header += "Cache-Control: public\n";
+            }
+
+            if (loadedFile.WasLoaded == false)
+            {
+                response.Header.clear();
+                response.Header = "HTTP/1.1 404 NOTFOUND\n";
+                loadedFile = FileUtils::ReadFile("404NotFound.html");
                 response.Body = loadedFile.Data;
                 response.BodyLength = loadedFile.Length;
-
-                response.Header += "Content-Type: text/html\n";
             }
         }
 
@@ -111,16 +139,22 @@ void RequestHandler(HttpClient client, const std::map<std::thread::id, bool>& co
 
         response.Header += s.str();
 
-        while (!connectionFlags.at(std::this_thread::get_id())) 
-        { 
-            std::this_thread::yield();
-        };
+        if (shouldWaitToSend)
+        {
+            while (connectionFlags.find(std::this_thread::get_id()) == connectionFlags.end()) { }
+
+            while (!connectionFlags.find(std::this_thread::get_id())->second) { }
+        }
 
         int iSendResult = client.Send(response);
 
         if (iSendResult != SOCKET_ERROR)
         {
             printf("Sent %d bytes to %s\n\n", iSendResult, httpRequestMap.at("Host").c_str());
+        }
+        else 
+        {
+            printf("Failed to send packet to %s\n\n", httpRequestMap.at("Host").c_str());
         }
     }
     else if (request.Length != 0) 

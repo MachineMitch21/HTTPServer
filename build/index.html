@@ -1,17 +1,180 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css" href="css/style.css"></link>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,800">
+        <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script>
 
-        <script type="text/javascript" src="js/jQuery.3.3.1.js"></script>
+        <link rel="stylesheet" href="css/bootstrap.css">
+        <link rel="stylesheet" href="css/styles.css">
+
+        <script src="js/third_party/jquery.min.js"></script>
+        <script src="js/third_party/popper.min.js"></script>
+        <script src="js/third_party/bootstrap.min.js"></script>
     </head>
-    <body>
-        <h1>Hello, Browser</h1>
-        <div>
-            <p>Hey, this is some text</p>
+
+    <body class="container-fluid">
+
+        <div class="row">    
+            <nav role="navigation" class="navbar navbar-expand-lg navbar-dark bg-primary">
+                <a class="navbar-brand" href="#">Dam Rentals</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Request Application</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="contactInfo.html">Contact Info</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
         </div>
 
-        <script type="text/javascript" src="js/main.js"></script>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-secondary m-2">
+                <li class="breadcrumb-item active" aria-current="page">Home</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-sm-12 col-md-6 col-xl-4 p-2">
+                <div class="card rounded-0 border-white shadow-lg">
+                    <div class="card-body text-center">
+                        <div class="row">
+                            <h5 class="card-title col-12">176 South Imaginary st.</h5>
+                            <div class="row justify-content-md-center text-center">
+                                <a>
+                                    <img src="assets/house1.jpg" class="card-img-top img-fluid col-12" alt="house1">
+                                    <div class="container p-4">
+                                        <div class="row p-2">
+                                            <div class="col-12">
+                                                <ul class="list-group">
+                                                    <li class="list-group-item card-text text-center border-0">$450 per month</li>
+                                                    <li class="list-group-item card-text text-center border-0">2 bed, 2 bath</li>
+                                                    <li class="list-group-item card-text text-center border-0">Pets: Yes</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <a id="house1Btn" class="btn btn-primary p-2 infoBtn" href="houseInfo.html" data-toggle="tooltip" data-placement="top" title="Check out more photos, policies, utilities and general info">Click For More Info</a>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="col-sm-12 col-md-6 col-xl-4 p-2">
+                <div class="card rounded-0 border-white shadow-lg">
+                    <div class="card-body text-center">
+                        <div class="row">
+                            <h5 class="card-title col-12">432 North 2nd st.</h5>
+                            <div class="row justify-content-md-center text-center">
+                                <a>
+                                    <img src="assets/house2.jpg" class="card-img-top img-fluid col-12" alt="house2">
+                                    <div class="container p-4">
+                                        <div class="row p-2">
+                                            <div class="col-12">
+                                                <ul class="list-group">
+                                                    <li class="list-group-item card-text text-center border-0">$450 per month</li>
+                                                    <li class="list-group-item card-text text-center border-0">2 bed, 2 bath</li>
+                                                    <li class="list-group-item card-text text-center border-0">Pets: Yes</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <a id="house2Btn" class="btn btn-primary p-2 infoBtn" href="houseInfo.html" data-toggle="tooltip" data-placement="top" title="Check out more photos, policies, utilities and general info">Click For More Info</a>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-md-6 col-xl-4 p-2">
+                <div class="card rounded-0 border-white shadow-lg">
+                    <div class="card-body text-center">
+                        <div class="row">
+                            <h5 class="card-title col-12">1823 West Woo st.</h5>
+                            <div class="row justify-content-md-center text-center">
+                                <a>
+                                    <img src="assets/house3.jpg" class="img-fluid col-12" alt="house3">
+                                    <div class="container p-4">
+                                        <div class="row p-2">
+                                            <div class="col-12">
+                                                <ul class="list-group">
+                                                    <li class="list-group-item card-text text-center border-0">$450 per month</li>
+                                                    <li class="list-group-item card-text text-center border-0">2 bed, 2 bath</li>
+                                                    <li class="list-group-item card-text text-center border-0">Pets: Yes</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <a id="house3Btn" class="btn btn-primary p-2 infoBtn" href="houseInfo.html" data-toggle="tooltip" data-placement="top" title="Check out more photos, policies, utilities and general info">Click For More Info</a>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-md-6 col-xl-4 p-2">
+                <div class="card rounded-0 border-white shadow-lg">
+                    <div class="card-body text-center">
+                        <div class="row">
+                            <h5 class="card-title col-12">712 East Fairway Drive</h5>
+                            <div class="row justify-content-md-center text-center">
+                                <a>
+                                    <img src="assets/house4.jpg" class="img-fluid col-12" alt="house4">
+                                    <div class="container p-4">
+                                        <div class="row p-2">
+                                            <div class="col-12">
+                                                <ul class="list-group">
+                                                    <li class="list-group-item card-text text-center border-0">$450 per month</li>
+                                                    <li class="list-group-item card-text text-center border-0">2 bed, 2 bath</li>
+                                                    <li class="list-group-item card-text text-center border-0">Pets: Yes</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <a id="house4Btn" class="btn btn-primary p-2 infoBtn" href="houseInfo.html" data-toggle="tooltip" data-placement="top" title="Check out more photos, policies, utilities and general info">Click For More Info</a>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="footer-copyright text-center py-3 bg-info col-12" id="siteFooter">
+                <div class="row m-2">
+                    <div class="col-sm-12 col-md-4 p-2">
+                        <a href="index.html">Home</a>
+                    </div>
+                    <div class="col-sm-12 col-md-4 p-2">
+                        <a href="contactInfo.html">Contact Info</a>
+                    </div>
+                    <div class="col-sm-12 col-md-4 p-2">
+                        <a href="#">Request Application</a>
+                    </div>
+                </div>
+                @ 2018 Copyright
+                <a href="#">Mcqueen Appraisals</a>
+            </div>
+        </div>
+
+        <script src="js/main.js"></script>
     </body>
 </html>

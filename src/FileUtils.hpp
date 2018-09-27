@@ -10,9 +10,10 @@ namespace FileUtils
     {
         std::string Data;
         size_t      Length;
+        bool        WasLoaded;
     };
 
-    LoadedFile ReadFile(const std::string& fileName);
+    LoadedFile ReadFile(const std::string& fileName, bool isImage = false);
 };
 
 #endif // FILEUTILS_HPP
